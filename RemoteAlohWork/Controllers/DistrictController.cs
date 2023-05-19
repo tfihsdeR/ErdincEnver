@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RemoteAlohWork.Data.DTOs.CityDTOs;
 using RemoteAlohWork.Data.DTOs.DistrictDTOs;
 using RemoteAlohWork.Data.Entities;
 using RemoteAlohWork.Data.Repository;
@@ -91,7 +92,31 @@ namespace RemoteAlohWork.Controllers
             else
             {
                 context.Districts.Remove(district);
+                context.SaveChanges();
                 return Ok($"Success.\n\nThe {district.DistrictName} has been removed!");
+            }
+        }
+
+        [HttpPut("update/{id}")]
+        public IActionResult UpdateById(int id, DistrictUpdateByIdRequestDto districtDto)
+        {
+            District district = context.Districts.Include(d => d.City).ThenInclude(c => c.Country).FirstOrDefault(d => d.Id == id);
+            if (district == null)
+            {
+                return NotFound($"There is no district with Id {id}");
+            }
+            else
+            {
+                district.DistrictName = districtDto.DistrictName;
+                district.CityId = districtDto.CityId;
+                context.SaveChanges();
+                return Ok(new DistrictUpdateResponseDto()
+                {
+                    Id = district.Id,
+                    DistrictName = district.DistrictName,
+                    CityName = district.City.CityName,
+                    CountryName = district.City.Country.CountryName
+                });
             }
         }
     }

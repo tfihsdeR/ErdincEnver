@@ -69,5 +69,25 @@ namespace RemoteAlohWork.Controllers
             }
             else return BadRequest($"Error!\n\nThere is no country with id {id}");
         }
+
+        [HttpPut("update/{id}")]
+        public IActionResult UpdateById(int id, CountryUpdateRequestDto countryDto)
+        {
+            Country country = context.Countries.FirstOrDefault(c => c.Id == id);
+            if (country != null)
+            {
+                country.CountryName = countryDto.CountryName.Trim();
+                context.SaveChanges();
+                return Ok(new CountryUpdateResponseDto()
+                {
+                    Id = country.Id,
+                    CountryName = countryDto.CountryName
+                });
+            }
+            else
+            {
+                return BadRequest($"There is no country with Id {id}");
+            }
+        }
     }
 }
