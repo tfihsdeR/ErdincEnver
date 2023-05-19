@@ -2,6 +2,7 @@
 using RemoteAlohWork.Data.DTOs.CountryDTOs;
 using RemoteAlohWork.Data.Entities;
 using RemoteAlohWork.Data.Repository;
+using System.Linq;
 
 namespace RemoteAlohWork.Controllers
 {
@@ -73,20 +74,27 @@ namespace RemoteAlohWork.Controllers
         [HttpPut("update/{id}")]
         public IActionResult UpdateById(int id, CountryUpdateRequestDto countryDto)
         {
-            Country country = context.Countries.FirstOrDefault(c => c.Id == id);
-            if (country != null)
+            if (context.Countries.Any(c => c.CountryName.ToLower() == countryDto.CountryName.ToLower().Trim()))
             {
-                country.CountryName = countryDto.CountryName.Trim();
-                context.SaveChanges();
-                return Ok(new CountryUpdateResponseDto()
-                {
-                    Id = country.Id,
-                    CountryName = countryDto.CountryName
-                });
+                return BadRequest("There is a country with the same name!");
             }
             else
             {
-                return BadRequest($"There is no country with Id {id}");
+                Country country = context.Countries.FirstOrDefault(c => c.Id == id);
+                if (country != null)
+                {
+                    country.CountryName = countryDto.CountryName.Trim();
+                    context.SaveChanges();
+                    return Ok(new CountryUpdateResponseDto()
+                    {
+                        Id = country.Id,
+                        CountryName = countryDto.CountryName
+                    });
+                }
+                else
+                {
+                    return BadRequest($"There is no country with Id {id}");
+                }
             }
         }
     }

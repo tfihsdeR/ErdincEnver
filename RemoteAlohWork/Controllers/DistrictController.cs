@@ -100,23 +100,30 @@ namespace RemoteAlohWork.Controllers
         [HttpPut("update/{id}")]
         public IActionResult UpdateById(int id, DistrictUpdateByIdRequestDto districtDto)
         {
-            District district = context.Districts.Include(d => d.City).ThenInclude(c => c.Country).FirstOrDefault(d => d.Id == id);
-            if (district == null)
+            if (context.Districts.Any(d => d.DistrictName == districtDto.DistrictName))
             {
-                return NotFound($"There is no district with Id {id}");
+                return BadRequest("There is a district with the same name!");
             }
             else
             {
-                district.DistrictName = districtDto.DistrictName;
-                district.CityId = districtDto.CityId;
-                context.SaveChanges();
-                return Ok(new DistrictUpdateResponseDto()
+                District district = context.Districts.Include(d => d.City).ThenInclude(c => c.Country).FirstOrDefault(d => d.Id == id);
+                if (district == null)
                 {
-                    Id = district.Id,
-                    DistrictName = district.DistrictName,
-                    CityName = district.City.CityName,
-                    CountryName = district.City.Country.CountryName
-                });
+                    return NotFound($"There is no district with Id {id}");
+                }
+                else
+                {
+                    district.DistrictName = districtDto.DistrictName;
+                    district.CityId = districtDto.CityId;
+                    context.SaveChanges();
+                    return Ok(new DistrictUpdateResponseDto()
+                    {
+                        Id = district.Id,
+                        DistrictName = district.DistrictName,
+                        CityName = district.City.CityName,
+                        CountryName = district.City.Country.CountryName
+                    });
+                }
             }
         }
     }

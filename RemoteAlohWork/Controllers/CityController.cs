@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RemoteAlohWork.Data.DTOs.CityDTOs;
-using RemoteAlohWork.Data.DTOs.CountryDTOs;
 using RemoteAlohWork.Data.Entities;
 using RemoteAlohWork.Data.Repository;
 
@@ -98,22 +97,29 @@ namespace RemoteAlohWork.Controllers
         [HttpPut("update/{id}")]
         public IActionResult UpdateById(int id, CityUpdateRequestDto cityDto)
         {
-            City city = context.Cities.Include(c => c.Country).FirstOrDefault(c => c.Id == id);
-            if (city == null)
+            if (context.Cities.Any(c => c.CityName.ToLower() == cityDto.CityName.ToLower().Trim()))
             {
-                return NotFound($"There is no city with Id {id}");
+                return BadRequest("There is a city with the same name !");
             }
             else
             {
-                city.CityName = cityDto.CityName;
-                city.CountryId = cityDto.CountryId;
-                context.SaveChanges();
-                return Ok(new CityUpdateResponseDto()
+                City city = context.Cities.Include(c => c.Country).FirstOrDefault(c => c.Id == id);
+                if (city == null)
                 {
-                    Id = city.Id,
-                    CityName = city.CityName,
-                    CountryName = city.Country.CountryName
-                });
+                    return NotFound($"There is no city with Id {id}");
+                }
+                else
+                {
+                    city.CityName = cityDto.CityName;
+                    city.CountryId = cityDto.CountryId;
+                    context.SaveChanges();
+                    return Ok(new CityUpdateResponseDto()
+                    {
+                        Id = city.Id,
+                        CityName = city.CityName,
+                        CountryName = city.Country.CountryName
+                    });
+                }
             }
         }
     }
